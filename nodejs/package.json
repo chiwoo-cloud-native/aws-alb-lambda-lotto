@@ -1,0 +1,19 @@
+{
+  "name": "lotto-service",
+  "version": "1.0",
+  "description": "AWS Lambda demo",
+  "main": "app.js",
+  "repository": "https://github.com/chiwoo-cloud-native/aws-alb-lambda-rest.git",
+  "author": "symplesims@gmail.com",
+  "engines": {
+    "node": ">=v16.15.0 <17"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1162.0",
+    "uuid": "^8.3.2"
+  },
+  "scripts": {
+  },
+  "devDependencies": {
+  }
+}
