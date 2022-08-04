@@ -22,19 +22,23 @@
 ## Pre-requisite
 
 AWS Lambda 서버리스 컴퓨팅 서비스를 프로비저닝 하기 위해 다음의 Tool 들을 설치 해야 합니다.
-- [Terraform 설치](https://learn.hashicorp.com/tutorials/terraform/install-cli)
-- [AWS CLI 설치](https://docs.aws.amazon.com/ko_kr/cli/latest/userguide/getting-started-install.html)
-- [AWS Profile 구성](https://docs.aws.amazon.com/ko_kr/cli/latest/userguide/cli-configure-files.html)
-- [Docker 설치](https://docs.docker.com/desktop/mac/install/)
 
-- 특히, Domain 서비스가 사전에 구성 되어 있어야 하며, Docker 이미지를 빌드 할 수 있도록 Docker Daemon 이 구동되어 있어야 합니다.
-  아래 `docker images` 명령을 통해 아래와 같이 정상 동적 여부를 확인 하세요.  
-  ![](images/docker-img.png)
+- [Terraform 설치](https://learn.hashicorp.com/tutorials/terraform/install-cli)
 
 - [AWS CLI 설치](https://docs.aws.amazon.com/ko_kr/cli/latest/userguide/install-cliv2.html) 가이드를 참고하여 구성해 주세요.
 
 - [AWS Confiugre](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-quickstart.html) 가이드를 참고하여 프로파일을 설정 합니다.  
-  `aws configure --profile produser` 명령 참고
+```
+aws configure --profile terra
+```
+
+- [Docker 설치](https://docs.docker.com/desktop/mac/install/)
+
+
+- 특히, Domain 서비스가 사전에 구성 되어 있어야 하며, Docker 이미지를 빌드 할 수 있도록 Docker Daemon 이 구동되어 있어야 합니다.
+  아래 `docker images` 명령을 통해 아래와 같이 정상 동적 여부를 확인 하세요.  
+
+![](docker-img.png)
 
 - 인터넷 서비스를 위한 도메인을 발급 받고 Route 53 의 Public Host Zone 을 사전에 구성해 주세요.  
   [도메인 발급 및 Route53 구성](https://symplesims.github.io/devops/route53/acm/hosting/2022/01/11/aws-route53.html) 을 참고 하여 무료 도메인을 한시적으로 활용할 수 있습니다.
@@ -46,10 +50,10 @@ AWS Lambda 서버리스 컴퓨팅 서비스를 프로비저닝 하기 위해 다
 
 ## Git
 ```
-git clone https://github.com/chiwoo-cloud-native/aws-alb-lambda-rest.git
+git clone https://github.com/chiwoo-cloud-native/aws-alb-lambda-lotto.git
 
 # 프로젝트 기준 경로로 이동하세요.
-cd aws-alb-lambda-rest
+cd aws-alb-lambda-lotto
 ```
 
 <br>
@@ -57,13 +61,14 @@ cd aws-alb-lambda-rest
 ## Build
 Terraform 모듈을 통해 AWS 클라우드 리소스를 한번에 구성 합니다.
 
-서비스 구성을 위한 [terraform.tfvars](./terraform.tfvars) 테라폼 변수는 본인의 환경에 맞게 구성 하세요.
+서비스 구성을 위한 [Context](./terraform.tfvars) 테라폼 변수는 본인의 환경에 맞게 구성 하세요.
 
 ```
-terraform -chdir=vpc init && terraform -chdir=alb init && terraform -chdir=helloworld init && \
-terraform -chdir=vpc apply -var-file=../terraform.tfvars -auto-approve && \
-terraform -chdir=alb apply -var-file=../terraform.tfvars -auto-approve && \
-terraform -chdir=helloworld apply -var-file=../terraform.tfvars -auto-approve
+# PLAN 확인 
+terraform plan
+
+# 프로비저닝
+terraform apply 
 ```
 
 <br>
@@ -81,12 +86,10 @@ curl -v -XGET https://lotto.sympleops.ml/
 
 ## Destroy
 
-helloworld 서비스와 관련된 모든 AWS 리소스를 한번에 제거 합니다.
+lotto 서비스와 관련된 모든 AWS 리소스를 한번에 제거 합니다.
 
 경우에 따라서 Security-Group 이 제거되기까지 30분 정도 소요 될 수 있습니다.
 
 ```
-terraform -chdir=helloworld destroy -var-file=../terraform.tfvars -auto-approve && \
-terraform -chdir=alb destroy -var-file=../terraform.tfvars -auto-approve && \
-terraform -chdir=vpc destroy -var-file=../terraform.tfvars -auto-approve
+terraform destroy
 ```

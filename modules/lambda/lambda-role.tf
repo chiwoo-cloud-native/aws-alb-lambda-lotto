@@ -18,34 +18,26 @@ resource "aws_iam_role" "this" {
 EOF
 }
 
+data "aws_iam_policy" "AWSLambdaVPCAccessExecutionRole" {
+  arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_vpc" {
+  role = aws_iam_role.this.name
+  policy_arn = data.aws_iam_policy.AWSLambdaVPCAccessExecutionRole.arn
+}
+
 data "aws_iam_policy_document" "this" {
-
-  # for cloudwatch-log
+  # RDS
   statement {
-    sid       = ""
-    actions   = [
-      "logs:CreateLogGroup",
-      "logs:CreateLogStream",
-      "logs:PutLogEvents"
-    ]
-    resources = [
-      "arn:aws:logs:*:*:*"
-    ]
-  }
-
-  # for attachment to TargetGroup
-  statement {
-    sid       = ""
-    actions   = [
-      "ec2:CreateNetworkInterface",
-      "ec2:DescribeNetworkInterfaces",
-      "ec2:DeleteNetworkInterface"
+    sid     = ""
+    actions = [
+      "rds-db:connect"
     ]
     resources = [
       "*"
     ]
   }
-
 }
 
 resource "aws_iam_policy" "this" {
@@ -58,14 +50,4 @@ resource "aws_iam_role_policy_attachment" "iam_policy" {
   policy_arn = aws_iam_policy.this.arn
 }
 
-/*
-data "aws_iam_policy" "AWSLambdaVPCAccessExecutionRole" {
-  arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
-}
 
-resource "aws_iam_role_policy_attachment" "lambda_vpc" {
-  role = aws_iam_role.this.name
-  policy_arn = "${data.aws_iam_policy.AWSLambdaVPCAccessExecutionRole.arn}"
-}
-
-*/

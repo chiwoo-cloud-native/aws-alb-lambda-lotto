@@ -1,23 +1,14 @@
-module "ctx" {
-  source  = "./modules/context/"
-  context = {
-    aws_profile = "terra"
-    region      = "ap-northeast-2"
-    project     = "demolmbda"
-    environment = "Testbed"
-    owner       = "ops@sympleops.ml"
-    team        = "DevOps"
-    cost_center = "767676"
-    domain      = "sympleops.ml"
-    pri_domain  = "sympleops.local"
-  }
-}
-
 locals {
   name_prefix = module.ctx.name_prefix
   domain      = module.ctx.domain
   vpc_name    = "${local.name_prefix}-vpc"
   tags        = module.ctx.tags
+}
+
+# 네이밍 및 Tagging 속성을 구성
+module "ctx" {
+  source  = "./modules/context/"
+  context = var.context
 }
 
 # VPC 리소스 생성
@@ -42,6 +33,7 @@ module "vpc" {
   igw_tags = { Name = format("%s-igw", local.name_prefix) }
 }
 
+# ALB 서비스 구성
 module "alb" {
   source      = "./modules/alb/"
   domain      = local.domain
@@ -51,6 +43,7 @@ module "alb" {
   depends_on = [module.vpc]
 }
 
+# Lambda 서비스 구성
 module "lambda" {
   source = "./modules/lambda/"
   aws_profile              = module.ctx.context.aws_profile
