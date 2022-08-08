@@ -58,6 +58,19 @@ cd aws-alb-lambda-lotto
 
 <br>
 
+## 애플리케이션 코드
+
+Lambda 의 콜드 스타트 타임을 최소화 하기 위해 nodejs 로 구현 하였으며 핵심 로직은 다음과 같습니다.  
+ 
+```javascript
+exports.lambdaHandler = async (event, context, callback) => {
+    const numbers = Array(45).fill(1).map((n, i) => n + i) // 1 부터 45 까지의 정수를 Array 로 생성 합니다.  
+    numbers.sort(() => Math.random() - 0.5); // Array 순서를 셔플로 섞습니다.  
+    const result = numbers.slice(0, 6); // 상위 6개의 Array 만 남깁니다. 
+    console.log(result)
+}
+```
+
 ## Build
 Terraform 모듈을 통해 AWS 클라우드 리소스를 한번에 구성 합니다.
 
@@ -127,7 +140,7 @@ curl -v -X GET https://lotto.sympleops.ml/
 < Connection: keep-alive
 < 
 * Connection #0 to host lotto.sympleops.ml left intact
-[13,28,39,38,19,8]%  
+[13,28,39,38,19,8]  
 ```
 
 <br>
