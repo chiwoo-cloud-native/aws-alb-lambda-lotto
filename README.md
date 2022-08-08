@@ -61,9 +61,12 @@ cd aws-alb-lambda-lotto
 ## Build
 Terraform 모듈을 통해 AWS 클라우드 리소스를 한번에 구성 합니다.
 
-서비스 구성을 위한 [Context](./terraform.tfvars) 테라폼 변수는 본인의 환경에 맞게 구성 하세요.
+서비스 구성을 위한 [context](./terraform.tfvars) 테라폼 변수는 본인의 환경에 맞게 구성 하세요.
 
 ```
+# 테라폼 프로젝트 초기화
+terraform init
+
 # PLAN 확인 
 terraform plan
 
@@ -73,13 +76,71 @@ terraform apply
 
 <br>
 
+
+## main 프로세스 
+
+[main.tf](./main.tf) 파일을 통해 프로비저닝이 진행 됩니다. 
+
+```hcl
+
+# 네이밍 및 Tagging 속성 정보를 Context 정보로 구성 하며, 각 Module 은 이 Context 정보를 참조하여 일관성 있는 네이밍 및 태깅 정보를 유지하게 됩니다.  
+module "ctx" {
+  source  = "./modules/context/"
+  context = var.context
+}
+
+# VPC 리소스 생성하며 CIDR 네트워크 대역 및 subnet 과 Availability 가용 영역 을 정의 합니다.  
+module "vpc" {
+  source = "registry.terraform.io/terraform-aws-modules/vpc/aws"
+}
+
+# IGW 의 트래픽을 라우팅하는 애플리케이션 로드 밸런서를 구성 합니다. 
+module "alb" {
+  source      = "./modules/alb/"
+  ...
+  depends_on = [module.vpc]
+}
+
+# Lambda 서비스 구성
+module "lambda" {
+  source = "./modules/lambda/"
+  ...
+  depends_on = [module.alb]
+}
+
+```
+
+
 ## Check
-
-cURL 명령을 통해 lotto 서비스가 정상인지 확인해 봅니다.
+프로비저닝이 완료된 이후 `cURL` 명령을 통해 Lambda 가 정상적으로 동작하는지 확인 할 수 있습니다.
 
 ```
-curl -v -XGET https://lotto.sympleops.ml/ 
+curl -v -X GET https://lotto.sympleops.ml/ 
+...
+...
+* Mark bundle as not supporting multiuse
+< HTTP/1.1 200 OK
+< Server: awselb/2.0
+< Date: Fri, 05 Aug 2022 01:55:40 GMT
+< Content-Type: application/json
+< Content-Length: 18
+< Connection: keep-alive
+< 
+* Connection #0 to host lotto.sympleops.ml left intact
+[13,28,39,38,19,8]%  
 ```
+
+<br>
+
+CloudWatch 로그를 통해 Lambda 함수의 실행시간, 처리내역, Memory 사용내역 등 주요 정보를 확인 할 수 있습니다.
+```
+2022-08-05T01:55:40.379000+00:00 2022/08/05/[$LATEST]5bdb128046f34f24904d0e754adf11b0 START RequestId: afeb5180-e36c-4def-a21b-e0d8ec32f4d1 Version: $LATEST
+2022-08-05T01:55:40.382000+00:00 2022/08/05/[$LATEST]5bdb128046f34f24904d0e754adf11b0 2022-08-05T01:55:40.382Z	afeb5180-e36c-4def-a21b-e0d8ec32f4d1	INFOCalled lambdaHandler: lotto
+2022-08-05T01:55:40.382000+00:00 2022/08/05/[$LATEST]5bdb128046f34f24904d0e754adf11b0 2022-08-05T01:55:40.382Z	afeb5180-e36c-4def-a21b-e0d8ec32f4d1	INFOresult: [ 13, 28, 39, 38, 19, 8 ]
+2022-08-05T01:55:40.383000+00:00 2022/08/05/[$LATEST]5bdb128046f34f24904d0e754adf11b0 END RequestId: afeb5180-e36c-4def-a21b-e0d8ec32f4d1
+2022-08-05T01:55:40.383000+00:00 2022/08/05/[$LATEST]5bdb128046f34f24904d0e754adf11b0 REPORT RequestId: afeb5180-e36c-4def-a21b-e0d8ec32f4d1	Duration: 1.73 ms	Billed Duration: 2 ms	Memory Size: 128 MB	Max Memory Used: 58 MB
+```
+
 
 <br>
 

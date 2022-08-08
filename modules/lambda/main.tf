@@ -33,6 +33,8 @@ resource "aws_lambda_function" "this" {
 
   depends_on = [
     aws_security_group.this,
+    aws_ecr_repository.this,
+    aws_iam_role_policy_attachment.lambda_vpc,
     null_resource.push_to_ecr
   ]
 
