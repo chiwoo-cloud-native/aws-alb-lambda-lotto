@@ -71,6 +71,23 @@ exports.lambdaHandler = async (event, context, callback) => {
 }
 ```
 
+<br>
+
+## Docker 이미지 빌드
+[Dockerfile](./nodejs/Dockerfile) 을 통해 애플리케이션 런타임 레이어를 결정하고, 애플리케이션 코드 (app.js 및 package.json) 를 컨테이너에 옮기고 컨테이너가 실행되는 명령어를 기술 합니다.   
+특히 CMD 명령어를 통해 Lambda 의 Entry 포인터를 정의 합니다. 
+
+```
+FROM amazon/aws-lambda-nodejs:16
+
+COPY ./nodejs/app.js ./nodejs/package*.json ./
+RUN npm install
+
+CMD ["app.lambdaHandler"]
+```
+
+<br>
+
 ## Build
 Terraform 모듈을 통해 AWS 클라우드 리소스를 한번에 구성 합니다.
 
